@@ -161,7 +161,7 @@ while running:
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1: # si el botón presionado es el botón izquierdo del mouse.
                 pos = pygame.mouse.get_pos()
                 for button in buttons:
