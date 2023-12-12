@@ -13,11 +13,20 @@ pygame.display.set_caption("Invasión de aliens")
 
 clock = pygame.time.Clock() #reloj para controlar los frames por segundo
 
+#Funcion par a dibujar texto
+def draw_text(surface, text, size, x, y):
+	font = pygame.font.SysFont("verdana", size) #fuente
+	text_surface = font.render(text, True, WHITE) #lugar para pintar el texto
+	text_rect = text_surface.get_rect() 
+	text_rect.midtop = (x, y)
+	surface.blit(text_surface, text_rect)
+
 #creamos nuestra clase jugador, Esto significa que la clase Player está siendo definida como una subclase de pygame.sprite.Sprite
 class Player(pygame.sprite.Sprite): 
 	def __init__(self):
 		super().__init__()
-		self.image = pygame.image.load("assets/player.png").convert() #para cargar la imagen del jugador
+		original_image = pygame.image.load("assets/navecom.png").convert()
+		self.image = pygame.transform.scale(original_image,(110,110))
 		self.image.set_colorkey(BLACK) #eliminamos el fondo negro de la imagen
 		self.rect = self.image.get_rect() #para obtener el rectangulo que abarca el área del shooter
 		self.rect.centerx = WIDTH//2 #para centrar el shooter al inicio del juego
@@ -53,17 +62,28 @@ class Enemy (pygame.sprite.Sprite):
 		self.image.set_colorkey(BLACK)
 
 		self.rect = self.image.get_rect()
-		self.rect.x = random.randrange(WIDTH - self.rect.width) #que aparezca en un lugar random
-		self.rect.y = random.randrange(-100, -40)
-		self.speedy = random.randrange(1, 10)
-		self.speed_x = random.randrange(-5,5)
+		self.rect.x = random.randint(0, WIDTH - self.rect.width) #que aparezca en un lugar random
+		self.rect.y = random.randint(-100, -40)
+		self.speedy = random.randint(1, 10)
+		self.speed_x = random.randint(-5,5)
 
-	def update(self):
+	MAX_ENEMIES = 7
+ 
+	def update(self):  
 		self.rect.y += self.speedy #aumentamos la velocidad
-		self.rect.x +=self.speed_x
+		self.rect.x += self.speed_x
 		if self.rect.top > HEIGHT + 10 or self.rect.left < -25 or self.rect.right > WIDTH + 25:
-			self.rect.y = random.randrange(-100, -40)
-			self.speedy = random.randrange(1, 10)	
+			self.rect.x = random.randint(0, WIDTH - self.rect.width)
+			self.rect.y = random.randint(-100, -40)
+			self.speedy = random.randint(1,10)
+
+
+
+			if len(enemy_list) < self.MAX_ENEMIES:
+				enemy = Enemy()
+				all_sprites.add(enemy)
+				enemy_list.add(enemy)
+
 
 class Bullet(pygame.sprite.Sprite):
 	def __init__(self, x, y):
@@ -82,12 +102,40 @@ class Bullet(pygame.sprite.Sprite):
 			self.kill()
 
 	#update() es comúnmente utilizado en juegos implementados con pygame para realizar actualizaciones a los atributos o propiedades del sprite en cada cuadro (frame) del juego
+
+class Button:
+    def __init__(self, x, y, width, height, text):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.color = (100, 100, 100)  # Color base del botón
+        self.text = text
+        self.font = pygame.font.SysFont("Arial", 20)
+
+    def draw(self, screen):
+        pygame.draw.rect(screen, self.color, self.rect)
+        text_surface = self.font.render(self.text, True, WHITE)
+        text_rect = text_surface.get_rect(center=self.rect.center)
+        screen.blit(text_surface, text_rect)
+
+    def is_clicked(self, pos):
+        return self.rect.collidepoint(pos)
+
+
+
 #Cargar imagen de fondo
 background = pygame.image.load("assets/background3.jpg").convert()
 background = pygame.transform.scale(background, (WIDTH, HEIGHT))
+backgroundInicio = pygame.image.load("assets/background2.jpg").convert()
+backgroundInicio = pygame.transform.scale(backgroundInicio, (WIDTH, HEIGHT))
 all_sprites = pygame.sprite.Group()	#creamos un grupo
 enemy_list = pygame.sprite.Group() #grupo meteoros
 bullets = pygame.sprite.Group()
+
+#para los botones
+start_button = Button(300, 200, 200, 50, "Iniciar juego")
+quit_button = Button(300, 300, 200, 50, "Salir")
+
+buttons = [start_button, quit_button]
+
 
 
 player = Player() #player es del tipo Player()
@@ -97,43 +145,72 @@ for i in range(8):
 	all_sprites.add(enemy)
 	enemy_list.add(enemy)
 
-running = True #inicializamos en true
-while running: #buque principal
-	clock.tick(60) #60 frames x seg
-	for event in pygame.event.get(): #event para salir de la ventana
-		if event.type == pygame.QUIT:
-			running = False
+score = 0
+running = True # Inicializ amos en True
+in_menu = True
+while running: # Bucle principal
+    screen.blit(backgroundInicio, [0,0])
 
-		#cada vez que se apreta la barra espaciadora dispara
-		elif event.type == pygame.KEYDOWN:
-			if event.key == pygame.K_SPACE:
-				player.shoot()
+    if in_menu:
 
+        draw_text(screen, "¡Cuidado con los aliens!", 50, WIDTH // 2, 100)
+        for button in buttons:
+            button.draw(screen)
 
-	all_sprites.update()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1: # si el botón presionado es el botón izquierdo del mouse.
+                pos = pygame.mouse.get_pos()
+                for button in buttons:
+                    if button.is_clicked(pos):
+                        if button.text == "Iniciar juego":
+                            in_menu = False  # Iniciar juego
+                        elif button.text == "Salir":  
+                            running = False  # Salir del juego
+  
+        pygame.display.flip()  # Mostrar el menú
 
-	#colisiones alien-laser
+    else:
+        clock.tick(60) # 60 frames por segundo
+        
+        for event in pygame.event.get(): # Evento para salir de la ventana
+            if event.type == pygame.QUIT:
+                running = False
 
-	hits = pygame.sprite.groupcollide(enemy_list, bullets, True, True)
-	for hit in hits:
-		enemy = Enemy()
-		all_sprites.add(enemy) 
-		enemy_list.add(enemy)
-	#Hacemos las colisiones - jugador - enemigo
-	hits = pygame.sprite.spritecollide(player, enemy_list, True) #los objetos que se choquen van a desaparecer
-	if hits:
-		#si hay algo dentro de la lista significa que me pegó un meteoro
-		running = False
+            # Disparar cada vez que se presiona la barra espaciadora
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    player.shoot()
 
+        all_sprites.update()
 
+        # Colisiones alien-laser
+        hits = pygame.sprite.groupcollide(enemy_list, bullets, True, True)
+        for hit in hits:
+            score += 10
+            enemy = Enemy()
+            all_sprites.add(enemy)
+            enemy_list.add(enemy)
 
-	screen.blit(background, [0,0]) #para el background
+        # Hacemos las colisiones - jugador - enemigo
+        hits = pygame.sprite.spritecollide(player, enemy_list, True) # Los objetos que se choquen van a desaparecer
+        if hits:
+            # Si hay algo dentro de la lista significa que me pegó un meteoro
+            running = False
 
-	all_sprites.draw(screen) #dibujamos el shooter en pantalla
+        screen.blit(background, [0,0]) # Colocar el fondo
 
-	pygame.display.flip()
+        all_sprites.draw(screen) # Dibujar el shooter en pantalla
+
+        # Marcador
+        draw_text(screen, f"Puntaje: {score}", 25, WIDTH//2, 10)
+        pygame.display.flip()  # Mostrar el juego
 
 pygame.quit()
+
+
+
 
 
 
