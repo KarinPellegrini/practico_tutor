@@ -207,7 +207,7 @@ while running: # Bucle principal
         draw_text(screen, f"Puntaje: {score}", 25, WIDTH//2, 10)
         pygame.display.flip()  # Mostrar el juego
 
-pygame.quit()                                      
+pygame.quit()                                     
 
 
 
