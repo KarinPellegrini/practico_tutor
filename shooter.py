@@ -5,15 +5,14 @@ HEIGHT = 600
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
-#inicializamos pygame
 pygame.init()
-pygame.mixer.init() #para el sonmido
-screen = pygame.display.set_mode((WIDTH, HEIGHT)) #creamos la pantalla
+pygame.mixer.init() #Para reproducir sonidos
+screen = pygame.display.set_mode((WIDTH, HEIGHT)) 
 pygame.display.set_caption("Invasión de aliens")
 
-clock = pygame.time.Clock() #reloj para controlar los frames por segundo
+clock = pygame.time.Clock() 
 
-#Funcion par a dibujar texto
+
 def draw_text(surface, text, size, x, y):
 	font = pygame.font.SysFont("verdana", size) #fuente
 	text_surface = font.render(text, True, WHITE) #lugar para pintar el texto
@@ -21,7 +20,6 @@ def draw_text(surface, text, size, x, y):
 	text_rect.midtop = (x, y)
 	surface.blit(text_surface, text_rect)
 
-#creamos nuestra clase jugador, Esto significa que la clase Player está siendo definida como una subclase de pygame.sprite.Sprite
 class Player(pygame.sprite.Sprite): 
 	def __init__(self):
 		super().__init__()
@@ -52,7 +50,7 @@ class Player(pygame.sprite.Sprite):
 		bullet_instance = Bullet(self.rect.centerx, self.rect.top) # Instanciar un objeto de la clase Bullet
 		all_sprites.add(bullet_instance)  # Agregar la bala al grupo de todos los sprites
 		bullets.add(bullet_instance)  # Agregar la bala al grupo de balas
-
+		lasser_sound.play()
 
 class Enemy (pygame.sprite.Sprite):
 	def __init__(self):
@@ -126,29 +124,33 @@ background = pygame.image.load("assets/background3.jpg").convert()
 background = pygame.transform.scale(background, (WIDTH, HEIGHT))
 backgroundInicio = pygame.image.load("assets/background2.jpg").convert()
 backgroundInicio = pygame.transform.scale(backgroundInicio, (WIDTH, HEIGHT))
-all_sprites = pygame.sprite.Group()	#creamos un grupo
-enemy_list = pygame.sprite.Group() #grupo meteoros
+all_sprites = pygame.sprite.Group()	
+enemy_list = pygame.sprite.Group() 
 bullets = pygame.sprite.Group()
-    
-#para los botones
+
+#Agregamos sonido del láser
+lasser_sound = pygame.mixer.Sound("assets/sonido_laser.ogg")
+explosion_sound = pygame.mixer.Sound("assets/explosion2.wav")   
+#Botones menu
 start_button = Button(300, 200, 200, 50, "Iniciar juego")
 quit_button = Button(300, 300, 200, 50, "Salir")
 
 buttons = [start_button, quit_button]
+ 
 
 
-
-player = Player() #player es del tipo Player()
-all_sprites.add(player) #agregamos al jugador al array
+player = Player()
+all_sprites.add(player)
 for i in range(8):
 	enemy = Enemy()
 	all_sprites.add(enemy)
 	enemy_list.add(enemy)
 
 score = 0
-running = True # Inicializ amos en True
+running = True 
 in_menu = True
-while running: # Bucle principal
+# Bucle principal
+while running: 
     screen.blit(backgroundInicio, [0,0])
 
     if in_menu:
@@ -189,12 +191,13 @@ while running: # Bucle principal
         hits = pygame.sprite.groupcollide(enemy_list, bullets, True, True)
         for hit in hits:
             score += 10
+            explosion_sound.play()
             enemy = Enemy()
             all_sprites.add(enemy)
             enemy_list.add(enemy)
 
-        # Hacemos las colisiones - jugador - enemigo
-        hits = pygame.sprite.spritecollide(player, enemy_list, True) # Los objetos que se choquen van a desaparecer
+        #Colisiones jugador-alien
+        hits = pygame.sprite. spritecollide(player, enemy_list, True) # Los objetos que se choquen van a desaparecer
         if hits:
             # Si hay algo dentro de la lista significa que me pegó un meteoro
             running = False
@@ -203,7 +206,7 @@ while running: # Bucle principal
 
         all_sprites.draw(screen) # Dibujar el shooter en pantalla
 
-        # Marcador
+        #Dibujamos el marcador de puntos
         draw_text(screen, f"Puntaje: {score}", 25, WIDTH//2, 10)
         pygame.display.flip()  # Mostrar el juego
 
