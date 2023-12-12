@@ -1,6 +1,6 @@
 # Invasión de aliens
 
-Este es un proyecto creado con la librería PyGame para Kodlan
+Este es un proyecto creado con la librería PyGame para Kodland
 
 ## Tabla de Contenidos
 
