@@ -117,7 +117,7 @@ class Button:
         screen.blit(text_surface, text_rect)
 
     def is_clicked(self, pos):
-        return self.rect.collidepoint(pos)
+        return self.rect.collidepoint(pos) 
 
 
 
@@ -129,7 +129,7 @@ backgroundInicio = pygame.transform.scale(backgroundInicio, (WIDTH, HEIGHT))
 all_sprites = pygame.sprite.Group()	#creamos un grupo
 enemy_list = pygame.sprite.Group() #grupo meteoros
 bullets = pygame.sprite.Group()
-
+    
 #para los botones
 start_button = Button(300, 200, 200, 50, "Iniciar juego")
 quit_button = Button(300, 300, 200, 50, "Salir")
@@ -207,7 +207,7 @@ while running: # Bucle principal
         draw_text(screen, f"Puntaje: {score}", 25, WIDTH//2, 10)
         pygame.display.flip()  # Mostrar el juego
 
-pygame.quit()
+pygame.quit()                                      
 
 
 
